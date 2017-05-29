@@ -1,0 +1,8 @@
+LIBRARY EENN_UTILS 
+EXPORTS  
+	set_progress
+	get_progress
+	deploy
+	init_nvml
+	get_gpu_count
+	get_gpu_name
