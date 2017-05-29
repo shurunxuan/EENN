@@ -58,6 +58,7 @@
             this.gpuTimer = new System.Windows.Forms.Timer(this.components);
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.logConsole = new System.Windows.Forms.TextBox();
+            this.stopButton = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -111,7 +112,7 @@
             // 
             this.deployButton.Location = new System.Drawing.Point(1191, 221);
             this.deployButton.Name = "deployButton";
-            this.deployButton.Size = new System.Drawing.Size(213, 367);
+            this.deployButton.Size = new System.Drawing.Size(213, 171);
             this.deployButton.TabIndex = 5;
             this.deployButton.Text = "Deploy";
             this.deployButton.UseVisualStyleBackColor = true;
@@ -345,11 +346,23 @@
             this.logConsole.Size = new System.Drawing.Size(807, 368);
             this.logConsole.TabIndex = 0;
             // 
+            // stopButton
+            // 
+            this.stopButton.Enabled = false;
+            this.stopButton.Location = new System.Drawing.Point(1191, 417);
+            this.stopButton.Name = "stopButton";
+            this.stopButton.Size = new System.Drawing.Size(213, 171);
+            this.stopButton.TabIndex = 18;
+            this.stopButton.Text = "Stop";
+            this.stopButton.UseVisualStyleBackColor = true;
+            this.stopButton.Click += new System.EventHandler(this.stopButton_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(12F, 25F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1416, 629);
+            this.Controls.Add(this.stopButton);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
@@ -403,6 +416,7 @@
         private System.Windows.Forms.Timer gpuTimer;
         private System.Windows.Forms.GroupBox groupBox3;
         private System.Windows.Forms.TextBox logConsole;
+        private System.Windows.Forms.Button stopButton;
     }
 }
 

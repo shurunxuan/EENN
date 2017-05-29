@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -48,9 +49,21 @@ namespace eenn_gui
         static extern uint get_gpu_memory_usage(uint index);
 
         private Deploy deploy;
+        private Thread deployThread;
         private uint currentGpuDevice = 32767;
         private uint gpu_slowdown_temperature;
         private uint gpu_shutdown_temperature;
+
+        public void WriteToLog(string str)
+        {
+            logConsole.Text += @"[" + DateTime.Now.ToString() + @"]   " + str + @"
+";
+        }
+
+        private void ClearLog()
+        {
+            logConsole.Text = "";
+        }
 
         public Form1()
         {
@@ -80,8 +93,10 @@ namespace eenn_gui
         {
             int progress = (int)(get_progress() * 100);
             progressBar1.Value = progress;
-            if (progress >= 9999) // Deploy finished
+            if (progress == 10000 || deploy.aborted) // Deploy finished
             {
+                while (!deploy.completed) { }
+                WriteToLog(deploy.timeElapsed / 1000.0 + " seconds elapsed.");
                 // Stop getting progress
                 progressTimer.Enabled = false;
 
@@ -89,12 +104,24 @@ namespace eenn_gui
                 gpuTimer.Interval = 1000;
 
                 // Enable textBoxes and buttons
+                stopButton.Enabled = false;
                 deployButton.Enabled = true;
                 inputFile.Enabled = true;
                 outputFile.Enabled = true;
 
-                MessageBox.Show(@"Done!");
-            }
+                if (progress == 10000)
+                {
+                    WriteToLog("Reconstruction finished.");
+
+                    MessageBox.Show(@"Done!");
+                }
+                else
+                {
+                    WriteToLog("Reconstruction aborted.");
+
+                    MessageBox.Show(@"Aborted!");
+                }
+            } 
         }
 
         private void deployButton_Click(object sender, EventArgs e)
@@ -109,12 +136,14 @@ namespace eenn_gui
                 return;
             }
             deploy.InputFile = inputFile.Text;
+            WriteToLog("Use \"" + deploy.InputFile + "\" as input.");
             if (outputFile.Text == "")
             {
                 MessageBox.Show(@"Specify an output file name!", @"ERROR");
                 return;
             }
             deploy.OutputFile = outputFile.Text;
+            WriteToLog("Use \"" + deploy.OutputFile + "\" as output.");
             deploy.Prototxt = ".\\model\\deploy.prototxt";
             deploy.Caffemodel = ".\\model\\EENN.caffemodel";
             if (processorComboBox.SelectedIndex < 0)
@@ -131,22 +160,26 @@ namespace eenn_gui
                     return;
                 }
                 deploy.GpuDevice = (uint)gpuComboBox.SelectedIndex;
+                WriteToLog("Using GPU " + deploy.GpuDevice + ": " + gpuComboBox.Text);
             }
             else
             {
                 deploy.GpuDevice = 0;
+                WriteToLog("Using CPU");
             }
 
             deploy.CropSize = uint.Parse(cropSizeTextBox.Text);
             if (deploy.CropSize <= 20)
             {
-                MessageBox.Show(@"Crpo size should be bigger than 20", @"ERROR");
+                MessageBox.Show(@"Crop size should be bigger than 20", @"ERROR");
                 return;
             }
             deploy.OutputLog = false;
 
+            WriteToLog("Reconstruction started.");
+
             // Start thread
-            Thread deployThread = new Thread(deploy.Run);
+            deployThread = new Thread(deploy.Run);
             deployThread.Start();
 
             // Start getting progress
@@ -157,6 +190,7 @@ namespace eenn_gui
             gpuTimer.Interval = 500;
 
             // Disable textBoxes and buttons
+            stopButton.Enabled = true;
             deployButton.Enabled = false;
             inputFile.Enabled = false;
             outputFile.Enabled = false;
@@ -241,6 +275,16 @@ namespace eenn_gui
             gpu_slowdown_temperature = get_gpu_slowdown_temperature(currentGpuDevice);
             temperatureProgressBar.Maximum = (int)gpu_shutdown_temperature;
         }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            WriteToLog("test");
+        }
+
+        private void stopButton_Click(object sender, EventArgs e)
+        {
+            deployThread.Abort();
+        }
     }
 
     public class Deploy
@@ -262,9 +306,28 @@ namespace eenn_gui
         public uint CropSize;
         public bool OutputLog;
 
+        public long timeElapsed;
+        public bool completed;
+        public bool aborted;
+
         public void Run()
         {
-            int hr = deploy(Prototxt, Caffemodel, InputFile, OutputFile, UsingGpu, GpuDevice, CropSize, OutputLog);
+            timeElapsed = 0;
+            aborted = false;
+            completed = false;
+            Stopwatch st = new Stopwatch();
+            try
+            {
+                int hr = deploy(Prototxt, Caffemodel, InputFile, OutputFile, UsingGpu, GpuDevice, CropSize, OutputLog);
+            }
+            catch (ThreadAbortException)
+            {
+                aborted = true;
+            }
+            
+            st.Stop();
+            timeElapsed = st.ElapsedMilliseconds;
+            completed = true;
         }
     }
 }
