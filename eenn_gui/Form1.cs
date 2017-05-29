@@ -54,6 +54,18 @@ namespace eenn_gui
         private uint gpu_slowdown_temperature;
         private uint gpu_shutdown_temperature;
 
+        private const int SC_CLOSE = 0xF060;
+        private const int MF_ENABLED = 0x00000000;
+        private const int MF_GRAYED = 0x00000001;
+        private const int MF_DISABLED = 0x00000002;
+
+        [DllImport("user32.dll", EntryPoint = "GetSystemMenu")]
+        private static extern IntPtr GetSystemMenu(IntPtr hWnd, int bRevert);
+
+        [DllImport("User32.dll")]
+        public static extern bool EnableMenuItem(IntPtr hMenu, int uIDEnableItem, int uEnable);
+
+
         public void WriteToLog(string str)
         {
             logConsole.Text += @"[" + DateTime.Now.ToString() + @"]   " + str + @"
@@ -93,9 +105,9 @@ namespace eenn_gui
         {
             int progress = (int)(get_progress() * 100);
             progressBar1.Value = progress;
-            if (progress == 10000 || deploy.aborted) // Deploy finished
+            if (progress == 10000) // Deploy finished
             {
-                while (!deploy.completed) { }
+                deployThread.Join();
                 WriteToLog(deploy.timeElapsed / 1000.0 + " seconds elapsed.");
                 // Stop getting progress
                 progressTimer.Enabled = false;
@@ -104,24 +116,16 @@ namespace eenn_gui
                 gpuTimer.Interval = 1000;
 
                 // Enable textBoxes and buttons
-                stopButton.Enabled = false;
+                exitButton.Enabled = true;
                 deployButton.Enabled = true;
                 inputFile.Enabled = true;
                 outputFile.Enabled = true;
 
-                if (progress == 10000)
-                {
-                    WriteToLog("Reconstruction finished.");
 
-                    MessageBox.Show(@"Done!");
-                }
-                else
-                {
-                    WriteToLog("Reconstruction aborted.");
+                WriteToLog("Reconstruction finished.");
+                MessageBox.Show(@"Done!");
 
-                    MessageBox.Show(@"Aborted!");
-                }
-            } 
+            }
         }
 
         private void deployButton_Click(object sender, EventArgs e)
@@ -190,7 +194,7 @@ namespace eenn_gui
             gpuTimer.Interval = 500;
 
             // Disable textBoxes and buttons
-            stopButton.Enabled = true;
+            exitButton.Enabled = false;
             deployButton.Enabled = false;
             inputFile.Enabled = false;
             outputFile.Enabled = false;
@@ -276,14 +280,16 @@ namespace eenn_gui
             temperatureProgressBar.Maximum = (int)gpu_shutdown_temperature;
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void Form1_Load(object sender, EventArgs e)
         {
-            WriteToLog("test");
+            IntPtr hMenu = GetSystemMenu(this.Handle, 0);
+            EnableMenuItem(hMenu, SC_CLOSE, (MF_DISABLED + MF_GRAYED) | MF_ENABLED);
+
         }
 
-        private void stopButton_Click(object sender, EventArgs e)
+        private void exitButton_Click(object sender, EventArgs e)
         {
-            deployThread.Abort();
+            Application.Exit();
         }
     }
 
@@ -308,23 +314,16 @@ namespace eenn_gui
 
         public long timeElapsed;
         public bool completed;
-        public bool aborted;
 
         public void Run()
         {
             timeElapsed = 0;
-            aborted = false;
             completed = false;
             Stopwatch st = new Stopwatch();
-            try
-            {
-                int hr = deploy(Prototxt, Caffemodel, InputFile, OutputFile, UsingGpu, GpuDevice, CropSize, OutputLog);
-            }
-            catch (ThreadAbortException)
-            {
-                aborted = true;
-            }
-            
+            st.Start();
+
+            int hr = deploy(Prototxt, Caffemodel, InputFile, OutputFile, UsingGpu, GpuDevice, CropSize, OutputLog);
+
             st.Stop();
             timeElapsed = st.ElapsedMilliseconds;
             completed = true;

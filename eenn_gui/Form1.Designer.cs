@@ -58,7 +58,7 @@
             this.gpuTimer = new System.Windows.Forms.Timer(this.components);
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.logConsole = new System.Windows.Forms.TextBox();
-            this.stopButton = new System.Windows.Forms.Button();
+            this.exitButton = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -112,7 +112,7 @@
             // 
             this.deployButton.Location = new System.Drawing.Point(1191, 221);
             this.deployButton.Name = "deployButton";
-            this.deployButton.Size = new System.Drawing.Size(213, 171);
+            this.deployButton.Size = new System.Drawing.Size(213, 305);
             this.deployButton.TabIndex = 5;
             this.deployButton.Text = "Deploy";
             this.deployButton.UseVisualStyleBackColor = true;
@@ -346,23 +346,23 @@
             this.logConsole.Size = new System.Drawing.Size(807, 368);
             this.logConsole.TabIndex = 0;
             // 
-            // stopButton
+            // exitButton
             // 
-            this.stopButton.Enabled = false;
-            this.stopButton.Location = new System.Drawing.Point(1191, 417);
-            this.stopButton.Name = "stopButton";
-            this.stopButton.Size = new System.Drawing.Size(213, 171);
-            this.stopButton.TabIndex = 18;
-            this.stopButton.Text = "Stop";
-            this.stopButton.UseVisualStyleBackColor = true;
-            this.stopButton.Click += new System.EventHandler(this.stopButton_Click);
+            this.exitButton.Location = new System.Drawing.Point(1191, 532);
+            this.exitButton.Name = "exitButton";
+            this.exitButton.Size = new System.Drawing.Size(213, 56);
+            this.exitButton.TabIndex = 18;
+            this.exitButton.Text = "Exit";
+            this.exitButton.UseVisualStyleBackColor = true;
+            this.exitButton.Click += new System.EventHandler(this.exitButton_Click);
             // 
             // Form1
             // 
+            this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(12F, 25F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1416, 629);
-            this.Controls.Add(this.stopButton);
+            this.Controls.Add(this.exitButton);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
@@ -374,6 +374,7 @@
             this.MaximizeBox = false;
             this.Name = "Form1";
             this.Text = "EENN";
+            this.Load += new System.EventHandler(this.Form1_Load);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.groupBox2.ResumeLayout(false);
@@ -416,7 +417,7 @@
         private System.Windows.Forms.Timer gpuTimer;
         private System.Windows.Forms.GroupBox groupBox3;
         private System.Windows.Forms.TextBox logConsole;
-        private System.Windows.Forms.Button stopButton;
+        private System.Windows.Forms.Button exitButton;
     }
 }
 
