@@ -32,7 +32,25 @@ namespace eenn_gui
         [DllImport("eenn_utils.dll", EntryPoint = "get_gpu_name")]
         static extern IntPtr get_gpu_name(uint index);
 
+        [DllImport("eenn_utils.dll", EntryPoint = "get_gpu_slowdown_temperature")]
+        static extern uint get_gpu_slowdown_temperature(uint index);
+
+        [DllImport("eenn_utils.dll", EntryPoint = "get_gpu_shutdown_temperature")]
+        static extern uint get_gpu_shutdown_temperature(uint index);
+
+        [DllImport("eenn_utils.dll", EntryPoint = "get_gpu_temperature")]
+        static extern uint get_gpu_temperature(uint index);
+
+        [DllImport("eenn_utils.dll", EntryPoint = "get_gpu_utilization")]
+        static extern uint get_gpu_utilization(uint index);
+
+        [DllImport("eenn_utils.dll", EntryPoint = "get_gpu_memory_usage")]
+        static extern uint get_gpu_memory_usage(uint index);
+
         private Deploy deploy;
+        private uint currentGpuDevice = 32767;
+        private uint gpu_slowdown_temperature;
+        private uint gpu_shutdown_temperature;
 
         public Form1()
         {
@@ -66,6 +84,9 @@ namespace eenn_gui
             {
                 // Stop getting progress
                 progressTimer.Enabled = false;
+
+                // Slow down monitoring GPU
+                gpuTimer.Interval = 1000;
 
                 // Enable textBoxes and buttons
                 deployButton.Enabled = true;
@@ -109,12 +130,13 @@ namespace eenn_gui
                     MessageBox.Show(@"Select a GPU!", @"ERROR");
                     return;
                 }
-                deploy.GpuDevice = (uint) gpuComboBox.SelectedIndex;
+                deploy.GpuDevice = (uint)gpuComboBox.SelectedIndex;
             }
             else
             {
                 deploy.GpuDevice = 0;
             }
+
             deploy.CropSize = uint.Parse(cropSizeTextBox.Text);
             if (deploy.CropSize <= 20)
             {
@@ -123,13 +145,16 @@ namespace eenn_gui
             }
             deploy.OutputLog = false;
 
-
             // Start thread
             Thread deployThread = new Thread(deploy.Run);
             deployThread.Start();
 
             // Start getting progress
             progressTimer.Enabled = true;
+
+            // Fast up monitoring GPU
+            gpuTimer.Enabled = true;
+            gpuTimer.Interval = 500;
 
             // Disable textBoxes and buttons
             deployButton.Enabled = false;
@@ -183,6 +208,38 @@ namespace eenn_gui
             {
                 outputFile.Text = saveFileDialog.FileName;
             }
+        }
+
+        private void gpuTimer_Tick(object sender, EventArgs e)
+        {
+            if (currentGpuDevice == 32767) return;
+            uint gpu_temperature = get_gpu_temperature(currentGpuDevice);
+            uint gpu_utilization = get_gpu_utilization(currentGpuDevice);
+            uint gpu_memory = get_gpu_memory_usage(currentGpuDevice);
+
+            utilLabel.Text = gpu_utilization + @" %";
+            memoryLabel.Text = gpu_memory + @" %";
+            temperatureLabel.Text = gpu_temperature + @" C";
+            if (gpu_temperature >= 0.5 * (gpu_shutdown_temperature - gpu_slowdown_temperature) + gpu_slowdown_temperature)
+                temperatureLabel.ForeColor = Color.Red;
+            else if (gpu_temperature >= 0.7 * gpu_slowdown_temperature)
+                temperatureLabel.ForeColor = Color.Olive;
+            else
+                temperatureLabel.ForeColor = Color.Blue;
+
+            utilProgressBar.Value = (int)gpu_utilization;
+            memoryProgressBar.Value = (int)gpu_memory;
+            temperatureProgressBar.Value = (int)gpu_temperature;
+
+        }
+
+        private void gpuComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            currentGpuDevice = (uint)gpuComboBox.SelectedIndex;
+            // Get GPU Temperature Threshod
+            gpu_shutdown_temperature = get_gpu_shutdown_temperature(currentGpuDevice);
+            gpu_slowdown_temperature = get_gpu_slowdown_temperature(currentGpuDevice);
+            temperatureProgressBar.Maximum = (int)gpu_shutdown_temperature;
         }
     }
 

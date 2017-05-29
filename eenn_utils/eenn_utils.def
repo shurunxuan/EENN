@@ -6,3 +6,8 @@ EXPORTS
 	init_nvml
 	get_gpu_count
 	get_gpu_name
+	get_gpu_slowdown_temperature
+	get_gpu_shutdown_temperature
+	get_gpu_temperature
+	get_gpu_utilization
+	get_gpu_memory_usage

@@ -96,6 +96,61 @@ EENN_UTILS_API char* get_gpu_name(unsigned int index)
 	return name;
 }
 
+EENN_UTILS_API unsigned int get_gpu_slowdown_temperature(unsigned index)
+{
+	nvmlDevice_t device;
+	nvmlReturn_t result = nvmlDeviceGetHandleByIndex(index, &device);
+	if (NVML_SUCCESS != result) return 0;
+	unsigned int temp;
+	result = nvmlDeviceGetTemperatureThreshold(device, NVML_TEMPERATURE_THRESHOLD_SLOWDOWN, &temp);
+	if (NVML_SUCCESS != result) return 0;
+	return temp;
+}
+
+EENN_UTILS_API unsigned int get_gpu_shutdown_temperature(unsigned int index)
+{
+	nvmlDevice_t device;
+	nvmlReturn_t result = nvmlDeviceGetHandleByIndex(index, &device);
+	if (NVML_SUCCESS != result) return 0;
+	unsigned int temp;
+	result = nvmlDeviceGetTemperatureThreshold(device, NVML_TEMPERATURE_THRESHOLD_SHUTDOWN, &temp);
+	if (NVML_SUCCESS != result) return 0;
+	return temp;
+}
+
+EENN_UTILS_API unsigned int get_gpu_temperature(unsigned int index)
+{
+	nvmlDevice_t device;
+	nvmlReturn_t result = nvmlDeviceGetHandleByIndex(index, &device);
+	if (NVML_SUCCESS != result) return 0;
+	unsigned int temp;
+	nvmlDeviceGetTemperature(device, NVML_TEMPERATURE_GPU, &temp);
+	if (NVML_SUCCESS != result) return 0;
+	return temp;
+}
+
+EENN_UTILS_API unsigned int get_gpu_utilization(unsigned int index)
+{
+	nvmlDevice_t device;
+	nvmlReturn_t result = nvmlDeviceGetHandleByIndex(index, &device);
+	if (NVML_SUCCESS != result) return 0;
+	nvmlUtilization_t utilization;
+	nvmlDeviceGetUtilizationRates(device, &utilization);
+	if (NVML_SUCCESS != result) return 0;
+	return utilization.gpu;
+}
+
+EENN_UTILS_API unsigned int get_gpu_memory_usage(unsigned int index)
+{
+	nvmlDevice_t device;
+	nvmlReturn_t result = nvmlDeviceGetHandleByIndex(index, &device);
+	if (NVML_SUCCESS != result) return 0;
+	nvmlUtilization_t utilization;
+	nvmlDeviceGetUtilizationRates(device, &utilization);
+	if (NVML_SUCCESS != result) return 0;
+	return utilization.memory;
+}
+
 void caffe_forward(boost::shared_ptr<caffe::Net<float> > & net, float *data_ptr)
 {
 	caffe::Blob<float>* input_blobs = net->input_blobs()[0];
@@ -274,7 +329,7 @@ EENN_UTILS_API int deploy(const char* proto, const char* model, const char* inpu
 		for (int j = 0; j < height; j += output_size)
 		{
 			percentage = float(i) / new_width * 100 + float(j) / new_width / new_height * 100;
-			LOG_IF_EVERY_N(INFO, output_log ,50) << percentage << "% Done";
+			LOG_IF_EVERY_N(INFO, output_log, 50) << percentage << "% Done";
 			cv::Rect roi(i, j, input_size, input_size);
 			cv::Mat block = imgFit(roi);
 

@@ -19,8 +19,8 @@ EENN_UTILS_API int deploy(const char* proto, const char* model, const char* inpu
 EENN_UTILS_API bool init_nvml();
 EENN_UTILS_API int get_gpu_count();
 EENN_UTILS_API char* get_gpu_name(unsigned int index);
-EENN_UTILS_API unsigned int get_gpu_slowdown_temperature();
-EENN_UTILS_API unsigned int get_gpu_shutdown_temperature();
-EENN_UTILS_API unsigned int get_gpu_temperature();
-EENN_UTILS_API unsigned int get_gpu_utilization();
-EENN_UTILS_API unsigned int get_gpu_memory_usage();
+EENN_UTILS_API unsigned int get_gpu_slowdown_temperature(unsigned int index);
+EENN_UTILS_API unsigned int get_gpu_shutdown_temperature(unsigned int index);
+EENN_UTILS_API unsigned int get_gpu_temperature(unsigned int index);
+EENN_UTILS_API unsigned int get_gpu_utilization(unsigned int index);
+EENN_UTILS_API unsigned int get_gpu_memory_usage(unsigned int index);
