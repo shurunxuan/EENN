@@ -234,6 +234,10 @@ namespace eenn_gui
             uint gpuUtilization = get_gpu_utilization(_currentGpuDevice);
             uint gpuMemory = get_gpu_memory_usage(_currentGpuDevice);
 
+            if (gpuTemperature > temperatureProgressBar.Maximum) return;
+            if (gpuUtilization > utilProgressBar.Maximum) return;
+            if (gpuMemory > memoryProgressBar.Maximum) return;
+
             utilLabel.Text = gpuUtilization + @" %";
             memoryLabel.Text = gpuMemory + @" %";
             temperatureLabel.Text = gpuTemperature + @" C";
