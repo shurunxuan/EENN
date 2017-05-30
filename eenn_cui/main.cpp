@@ -34,7 +34,7 @@ int main(int argc, char** argv)
 {
 	std::vector<std::string> argList;
 	std::string argstr;
-	for (int i = 1; i < argc; ++i)
+	for (auto i = 1; i < argc; ++i)
 	{
 		argList.push_back(argv[i]);
 		argstr += argv[i];
@@ -52,17 +52,7 @@ int main(int argc, char** argv)
 	std::map<std::string, std::vector<std::string>> result;
 	std::string errorPos;
 
-	int error = parser.Parse(argstr, result, errorPos);
-
-	//for (std::map<std::string, std::vector<std::string>>::iterator it = result.begin(); it != result.end(); ++it) {
-	//	std::string key = it -> first;
-	//	std::vector<std::string> value = it->second;
-	//	std::cout << key << "\t";
-	//	for (std::string val : value)
-	//	std::cout << val << " ";
-	//	std::cout << std::endl;
-	//}
-	//std::cout << "Error: " << error << "\tError Position: " << errorPos << std::endl;
+	auto error = parser.Parse(argstr, result, errorPos);
 
 	if (error < 0)
 	{
@@ -129,7 +119,7 @@ int main(int argc, char** argv)
 		else
 			gpuDevice = 0;
 	}
-	else if ((result.find("c") != result.end() || result.find("cpu") != result.end()))
+	else if (result.find("c") != result.end() || result.find("cpu") != result.end())
 	{
 		useGpu = false;
 		gpuDevice = 0;
@@ -165,12 +155,12 @@ int main(int argc, char** argv)
 	else
 		cropSize = 64;
 
-	bool log = (result.find("l") != result.end() || result.find("log") != result.end());
+	auto log = result.find("l") != result.end() || result.find("log") != result.end();
 
 	std::string prototxt("model\\deploy.prototxt");
 	std::string caffemodel("model\\EENN.caffemodel");
 
-	int hr = deploy(prototxt.c_str(), caffemodel.c_str(), inputFile.c_str(), outputFile.c_str(), useGpu, gpuDevice, cropSize, log);
+	auto hr = deploy(prototxt.c_str(), caffemodel.c_str(), inputFile.c_str(), outputFile.c_str(), useGpu, gpuDevice, cropSize, log);
 
-	return 0;
+	return hr;
 }

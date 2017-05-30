@@ -2,9 +2,7 @@
 //
 #define GLOG_NO_ABBREVIATED_SEVERITIES 
 #include <string>
-
 #include <iostream>
-#include <string>
 #include <fstream>
 #include <cmath>
 #include <nvml.h>
@@ -48,6 +46,8 @@
 #pragma comment(lib, "opencv_imgcodecs310.lib")
 #pragma comment(lib, "opencv_imgproc310.lib")
 
+// Check the unregistered layer
+CAFFE_REG_H
 
 // This is an example of an exported variable
 float percentage = 0;
@@ -79,7 +79,7 @@ EENN_UTILS_API bool init_nvml()
 EENN_UTILS_API int get_gpu_count()
 {
 	unsigned int device_count = 0;
-	nvmlReturn_t result = nvmlDeviceGetCount(&device_count);
+	auto result = nvmlDeviceGetCount(&device_count);
 	if (result != NVML_SUCCESS)
 		device_count = -1;
 	return device_count;
@@ -88,8 +88,8 @@ EENN_UTILS_API int get_gpu_count()
 EENN_UTILS_API char* get_gpu_name(unsigned int index)
 {
 	nvmlDevice_t device;
-	nvmlReturn_t result = nvmlDeviceGetHandleByIndex(index, &device);
-	char* name = new char[NVML_DEVICE_NAME_BUFFER_SIZE];
+	auto result = nvmlDeviceGetHandleByIndex(index, &device);
+	auto name = new char[NVML_DEVICE_NAME_BUFFER_SIZE];
 	if (NVML_SUCCESS != result) return "Error!";
 	result = nvmlDeviceGetName(device, name, NVML_DEVICE_NAME_BUFFER_SIZE);
 	if (NVML_SUCCESS != result) return "Error!";
@@ -99,7 +99,7 @@ EENN_UTILS_API char* get_gpu_name(unsigned int index)
 EENN_UTILS_API unsigned int get_gpu_slowdown_temperature(unsigned index)
 {
 	nvmlDevice_t device;
-	nvmlReturn_t result = nvmlDeviceGetHandleByIndex(index, &device);
+	auto result = nvmlDeviceGetHandleByIndex(index, &device);
 	if (NVML_SUCCESS != result) return 0;
 	unsigned int temp;
 	result = nvmlDeviceGetTemperatureThreshold(device, NVML_TEMPERATURE_THRESHOLD_SLOWDOWN, &temp);
@@ -110,7 +110,7 @@ EENN_UTILS_API unsigned int get_gpu_slowdown_temperature(unsigned index)
 EENN_UTILS_API unsigned int get_gpu_shutdown_temperature(unsigned int index)
 {
 	nvmlDevice_t device;
-	nvmlReturn_t result = nvmlDeviceGetHandleByIndex(index, &device);
+	auto result = nvmlDeviceGetHandleByIndex(index, &device);
 	if (NVML_SUCCESS != result) return 0;
 	unsigned int temp;
 	result = nvmlDeviceGetTemperatureThreshold(device, NVML_TEMPERATURE_THRESHOLD_SHUTDOWN, &temp);
@@ -121,7 +121,7 @@ EENN_UTILS_API unsigned int get_gpu_shutdown_temperature(unsigned int index)
 EENN_UTILS_API unsigned int get_gpu_temperature(unsigned int index)
 {
 	nvmlDevice_t device;
-	nvmlReturn_t result = nvmlDeviceGetHandleByIndex(index, &device);
+	auto result = nvmlDeviceGetHandleByIndex(index, &device);
 	if (NVML_SUCCESS != result) return 0;
 	unsigned int temp;
 	nvmlDeviceGetTemperature(device, NVML_TEMPERATURE_GPU, &temp);
@@ -132,7 +132,7 @@ EENN_UTILS_API unsigned int get_gpu_temperature(unsigned int index)
 EENN_UTILS_API unsigned int get_gpu_utilization(unsigned int index)
 {
 	nvmlDevice_t device;
-	nvmlReturn_t result = nvmlDeviceGetHandleByIndex(index, &device);
+	auto result = nvmlDeviceGetHandleByIndex(index, &device);
 	if (NVML_SUCCESS != result) return 0;
 	nvmlUtilization_t utilization;
 	nvmlDeviceGetUtilizationRates(device, &utilization);
@@ -143,7 +143,7 @@ EENN_UTILS_API unsigned int get_gpu_utilization(unsigned int index)
 EENN_UTILS_API unsigned int get_gpu_memory_usage(unsigned int index)
 {
 	nvmlDevice_t device;
-	nvmlReturn_t result = nvmlDeviceGetHandleByIndex(index, &device);
+	auto result = nvmlDeviceGetHandleByIndex(index, &device);
 	if (NVML_SUCCESS != result) return 0;
 	nvmlUtilization_t utilization;
 	nvmlDeviceGetUtilizationRates(device, &utilization);
@@ -153,7 +153,7 @@ EENN_UTILS_API unsigned int get_gpu_memory_usage(unsigned int index)
 
 void caffe_forward(boost::shared_ptr<caffe::Net<float> > & net, float *data_ptr)
 {
-	caffe::Blob<float>* input_blobs = net->input_blobs()[0];
+	auto input_blobs = net->input_blobs()[0];
 	switch (caffe::Caffe::mode())
 	{
 	case caffe::Caffe::CPU:
@@ -172,7 +172,7 @@ void caffe_forward(boost::shared_ptr<caffe::Net<float> > & net, float *data_ptr)
 
 void caffe_forward(boost::shared_ptr<caffe::Net<float> > & net, cv::Mat& block, caffe::DataTransformer<float>& input_xformer)
 {
-	caffe::Blob<float>* input_blobs = net->input_blobs()[0];
+	auto input_blobs = net->input_blobs()[0];
 	input_xformer.Transform(block, input_blobs);
 	switch (caffe::Caffe::mode())
 	{
@@ -214,16 +214,16 @@ cv::Mat DatumToCvMat(const caffe::Datum& datum)
 	//  cvCreateData( &mat );
 
 	//  CvMat* mat_p = cvCreateMat( datum.height(), datum.width(), img_type );
-	int datum_channels = datum.channels();
-	int datum_height = datum.height();
-	int datum_width = datum.width();
+	auto datum_channels = datum.channels();
+	auto datum_height = datum.height();
+	auto datum_width = datum.width();
 
-	for (int h = 0; h < datum_height; ++h) {
-		uchar* ptr = mat.ptr<uchar>(h);
-		int img_index = 0;
-		for (int w = 0; w < datum_width; ++w) {
-			for (int c = 0; c < datum_channels; ++c) {
-				int datum_index = (c * datum_height + h) * datum_width + w;
+	for (auto h = 0; h < datum_height; ++h) {
+		auto ptr = mat.ptr<uchar>(h);
+		auto img_index = 0;
+		for (auto w = 0; w < datum_width; ++w) {
+			for (auto c = 0; c < datum_channels; ++c) {
+				auto datum_index = (c * datum_height + h) * datum_width + w;
 				float datum_float_val = datum.float_data(datum_index);
 				if (datum_float_val >= 255.0)
 				{
@@ -245,13 +245,13 @@ cv::Mat DatumToCvMat(const caffe::Datum& datum)
 
 EENN_UTILS_API int deploy(const char* proto, const char* model, const char* input, const char* output, bool using_gpu, unsigned int gpu_device, unsigned int crop_size, bool output_log)
 {
-	unsigned int input_size = crop_size;
-	unsigned int output_size = crop_size - 20;
+	auto input_size = crop_size;
+	auto output_size = crop_size - 20;
 	if (output_size <= 0)
 	{
 		return -1;
 	}
-	unsigned int difference = input_size - output_size;
+	auto difference = input_size - output_size;
 
 	std::string prototxt(proto);
 	std::string temptxt(prototxt.begin(), prototxt.begin() + prototxt.rfind('.'));
@@ -262,12 +262,12 @@ EENN_UTILS_API int deploy(const char* proto, const char* model, const char* inpu
 	std::ofstream outputPrototxt(temptxt);
 	std::string line;
 
-	for (int i = 0; i < 4; ++i)
+	for (auto i = 0; i < 4; ++i)
 	{
 		std::getline(originalPrototxt, line);
 		outputPrototxt << line << std::endl;
 	}
-	for (int i = 0; i < 2; ++i)
+	for (auto i = 0; i < 2; ++i)
 	{
 		std::getline(originalPrototxt, line);
 		outputPrototxt << "  dim: " << input_size << std::endl;
@@ -282,7 +282,7 @@ EENN_UTILS_API int deploy(const char* proto, const char* model, const char* inpu
 	if (using_gpu)
 	{
 		caffe::Caffe::set_mode(caffe::Caffe::GPU);
-		int device_id = 0;
+		auto device_id = 0;
 		caffe::Caffe::SetDevice(device_id);
 	}
 	else
@@ -305,11 +305,11 @@ EENN_UTILS_API int deploy(const char* proto, const char* model, const char* inpu
 	std::string imgPath(input);		// Input image path
 	std::string imgOutPath(output);
 
-	cv::Mat img = cv::imread(imgPath);								// Input image
+	auto img = cv::imread(imgPath);								// Input image
 	cv::Mat img2x;													// Image resized to target size with bicubic interpolation
 
-	int height = img.rows * 2;										// Target height
-	int width = img.cols * 2;										// Target width
+	auto height = img.rows * 2;										// Target height
+	auto width = img.cols * 2;										// Target width
 
 																	// Resize the input image
 	cv::resize(img, img2x, cv::Size(width, height), 0, 0, CV_INTER_CUBIC);
@@ -319,23 +319,23 @@ EENN_UTILS_API int deploy(const char* proto, const char* model, const char* inpu
 
 	cv::Mat imgFit = cv::Mat::zeros(new_height, new_width, CV_8UC3);					// Image with border
 	cv::Rect fit(difference / 2, difference / 2, width, height);						// Image ROI in border
-	cv::Mat fitROI = imgFit(fit);														// Image in border
+	auto fitROI = imgFit(fit);														// Image in border
 	img2x.convertTo(fitROI, fitROI.type());
 
 	cv::Mat imgReconstruct = cv::Mat::zeros(new_height, new_width, CV_8UC3);			// Reconstructed image with border
 
-	for (int i = 0; i < width; i += output_size)
+	for (auto i = 0; i < width; i += output_size)
 	{
-		for (int j = 0; j < height; j += output_size)
+		for (auto j = 0; j < height; j += output_size)
 		{
 			percentage = float(i) / new_width * 100 + float(j) / new_width / new_height * 100;
 			LOG_IF_EVERY_N(INFO, output_log, 50) << percentage << "% Done";
 			cv::Rect roi(i, j, input_size, input_size);
-			cv::Mat block = imgFit(roi);
+			auto block = imgFit(roi);
 
-			// TODO: process block
+			// Process block
 			caffe_forward(net, block, input_xformer);
-			caffe::Blob<float>* raw_blob_ptr = net->output_blobs()[0];
+			auto raw_blob_ptr = net->output_blobs()[0];
 
 			caffe::Blob<float> output_blob;
 			output_blob.Reshape(raw_blob_ptr->num(), raw_blob_ptr->channels(),
@@ -352,28 +352,28 @@ EENN_UTILS_API int deploy(const char* proto, const char* model, const char* inpu
 			datum.set_channels(output_blob.channels());
 			datum.clear_data();
 			datum.clear_float_data();
-			const float* blob_data = output_blob.cpu_data();
+			auto blob_data = output_blob.cpu_data();
 
-			for (int i = 0; i < output_blob.count(); ++i)
+			for (auto m = 0; m < output_blob.count(); ++m)
 			{
-				datum.add_float_data(blob_data[i]);
+				datum.add_float_data(blob_data[m]);
 			}
 
-			cv::Mat mat = DatumToCvMat(datum);
+			auto mat = DatumToCvMat(datum);
 
 
 			cv::Rect outputROI(difference / 2, difference / 2, output_size, output_size);
-			cv::Mat blockOutput = mat(outputROI);
+			auto blockOutput = mat(outputROI);
 
 			cv::Rect reconstructROI(i + difference / 2, j + difference / 2, output_size, output_size);
-			cv::Mat reconstructBlock = imgReconstruct(reconstructROI);
+			auto reconstructBlock = imgReconstruct(reconstructROI);
 			blockOutput.convertTo(reconstructBlock, CV_8UC3);
 		}
 	}
 	percentage = 100.00f;
 	LOG_IF(INFO, output_log) << percentage << "% Done";
 
-	cv::Mat imgReconstructContent = imgReconstruct(fit);
+	auto imgReconstructContent = imgReconstruct(fit);
 	cv::Mat imgOutput;
 	imgReconstructContent.convertTo(imgOutput, CV_8UC3);
 	cv::imwrite(imgOutPath, imgOutput);

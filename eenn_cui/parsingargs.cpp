@@ -25,14 +25,14 @@ bool ParsingArgs::AddArgType(char shortName, const char * longName, KeyFlag flag
 
 ParsingArgs::KeyFlag ParsingArgs::GetKeyFlag(std::string &key)
 {
-	for (int i = 0; i<m_args.size(); ++i)
+	for (size_t i = 0; i < m_args.size(); ++i)
 	{
 		std::string shortName = "-";
 		std::string longName = "--";
 		shortName += m_args[i].m_shortName;
 		longName += m_args[i].m_longName;
 		if (0 == key.compare(shortName) ||
-			(0 == key.compare(longName))
+			0 == key.compare(longName)
 			)
 		{
 			RemoveKeyFlag(key);
@@ -59,26 +59,25 @@ void ParsingArgs::RemoveKeyFlag(std::string & word)
 
 bool ParsingArgs::GetWord(std::string & Paras, std::string & word)
 {
-	size_t iNotSpacePos = Paras.find_first_not_of(' ', 0);
+	auto iNotSpacePos = Paras.find_first_not_of(' ', 0);
 	if (iNotSpacePos == std::string::npos)
 	{
 		Paras.clear();
 		word.clear();
 		return true;
 	}
-	int length = Paras.size();
+	auto length = Paras.size();
 	std::list<char> specialChar;
-	int islashPos = -1;
-	for (int i = iNotSpacePos; i<length; i++)
+	for (auto i = iNotSpacePos; i < length; i++)
 	{
-		char cur = Paras[i];
-		bool bOk = false;
+		auto cur = Paras[i];
+		auto bOk = false;
 		switch (cur)
 		{
 		case ' ':
 			if (specialChar.empty())
 			{
-				if (i != (length - 1))
+				if (i != length - 1)
 				{
 					Paras = std::string(Paras, i + 1, length - i - 1);
 				}
@@ -110,7 +109,7 @@ bool ParsingArgs::GetWord(std::string & Paras, std::string & word)
 			break;
 		default:
 			word.append(1, Paras[i]);
-			if (i == (length - 1))
+			if (i == length - 1)
 			{
 				bOk = true;
 				Paras.clear();
@@ -127,23 +126,20 @@ bool ParsingArgs::GetWord(std::string & Paras, std::string & word)
 		Paras.clear();
 		return true;
 	}
-	else
-	{
-		return false;
-	}
+	return false;
 }
 
 bool ParsingArgs::IsDuplicateKey(const std::string &key, const std::map<std::string, std::vector<std::string> > & result)
 {
 	if (result.find(key) != result.end())
 	{
-		return true; 
+		return true;
 	}
 
-	for (int i = 0; i<m_args.size(); ++i)
+	for (auto i = 0; i < m_args.size(); ++i)
 	{
-		if ((key.compare(m_args[i].m_longName) == 0 && result.find(std::string(1, m_args[i].m_shortName)) != result.end())
-			|| (key.compare(std::string(1, m_args[i].m_shortName)) == 0 && result.find(m_args[i].m_longName) != result.end())
+		if (key.compare(m_args[i].m_longName) == 0 && result.find(std::string(1, m_args[i].m_shortName)) != result.end()
+			|| key.compare(std::string(1, m_args[i].m_shortName)) == 0 && result.find(m_args[i].m_longName) != result.end()
 			)
 		{
 			return true;
@@ -154,50 +150,48 @@ bool ParsingArgs::IsDuplicateKey(const std::string &key, const std::map<std::str
 
 int ParsingArgs::Parse(const std::string & Paras, std::map<std::string, std::vector<std::string> > & result, std::string &errPos)
 {
-	std::string tmpString = Paras;
-	KeyFlag keyFlag = INVALID_KEY;
-	std::string sKey = ""; 
-	bool bFindValue = false; 
+	auto tmpString = Paras;
+	auto keyFlag = INVALID_KEY;
+	std::string sKey = "";
+	auto bFindValue = false;
 	while (!tmpString.empty())
 	{
 		std::string word = "";
 
-		bool bRet = GetWord(tmpString, word);
+		auto bRet = GetWord(tmpString, word);
 
 		if (bRet == false)
 		{
 			errPos = tmpString;
 			return -4;
 		}
-		else
+		auto tmpFlag = GetKeyFlag(word);
+		if (IsDuplicateKey(word, result))
 		{
-			KeyFlag tmpFlag = GetKeyFlag(word);
-			if (IsDuplicateKey(word, result))
+			errPos = tmpString;
+			return -5;
+		}
+		if (tmpFlag != INVALID_KEY)
+		{
+			if (tmpFlag == MUST_VALUE && keyFlag == MUST_VALUE && !bFindValue)
 			{
 				errPos = tmpString;
-				return -5;
+				return -3;
 			}
-			if (tmpFlag != INVALID_KEY)
+			keyFlag = tmpFlag;
+			std::vector<std::string> tmp;
+			result[word] = tmp;
+			sKey = word;
+			bFindValue = false;
+		}
+		else
+		{
+			switch (keyFlag)
 			{
-				if (tmpFlag == MUST_VALUE && keyFlag == MUST_VALUE && !bFindValue)
+			case MAYBE_VALUE:
+			case MUST_VALUE:
 				{
-					errPos = tmpString;
-					return -3;
-				}
-				keyFlag = tmpFlag;
-				std::vector<std::string> tmp;
-				result[word] = tmp;
-				sKey = word;
-				bFindValue = false;
-			}
-			else
-			{
-				switch (keyFlag)
-				{
-				case MAYBE_VALUE:
-				case MUST_VALUE:
-				{
-					std::map<std::string, std::vector<std::string> >::iterator it = result.find(sKey);
+					auto it = result.find(sKey);
 					if (it != result.end())
 					{
 						it->second.push_back(word);
@@ -210,13 +204,12 @@ int ParsingArgs::Parse(const std::string & Paras, std::map<std::string, std::vec
 					}
 				}
 				break;
-				case NO_VALUE:
-					errPos = tmpString;
-					return -2;
-				default:
-					errPos = tmpString;
-					return -1;
-				}
+			case NO_VALUE:
+				errPos = tmpString;
+				return -2;
+			default:
+				errPos = tmpString;
+				return -1;
 			}
 		}
 	}

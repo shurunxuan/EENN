@@ -1,16 +1,10 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace eenn_gui
@@ -48,38 +42,33 @@ namespace eenn_gui
         [DllImport("eenn_utils.dll", EntryPoint = "get_gpu_memory_usage")]
         static extern uint get_gpu_memory_usage(uint index);
 
-        private Deploy deploy;
-        private Thread deployThread;
-        private uint currentGpuDevice = 32767;
-        private uint gpu_slowdown_temperature;
-        private uint gpu_shutdown_temperature;
+        private readonly Deploy _deploy;
+        private Thread _deployThread;
+        private uint _currentGpuDevice = 32767;
+        private uint _gpuSlowdownTemperature;
+        private uint _gpuShutdownTemperature;
 
-        private const int SC_CLOSE = 0xF060;
-        private const int MF_ENABLED = 0x00000000;
-        private const int MF_GRAYED = 0x00000001;
-        private const int MF_DISABLED = 0x00000002;
+        private const int ScClose = 0xF060;
+        private const int MfEnabled = 0x00000000;
+        private const int MfGrayed = 0x00000001;
+        private const int MfDisabled = 0x00000002;
 
         [DllImport("user32.dll", EntryPoint = "GetSystemMenu")]
         private static extern IntPtr GetSystemMenu(IntPtr hWnd, int bRevert);
 
         [DllImport("User32.dll")]
-        public static extern bool EnableMenuItem(IntPtr hMenu, int uIDEnableItem, int uEnable);
+        public static extern bool EnableMenuItem(IntPtr hMenu, int uIdEnableItem, int uEnable);
 
 
         public void WriteToLog(string str)
         {
-            logConsole.Text += @"[" + DateTime.Now.ToString() + @"]   " + str + @"
+            logConsole.Text += @"[" + DateTime.Now + @"]   " + str + @"
 ";
-        }
-
-        private void ClearLog()
-        {
-            logConsole.Text = "";
         }
 
         public Form1()
         {
-            deploy = new Deploy();
+            _deploy = new Deploy();
 
             InitializeComponent();
 
@@ -103,29 +92,26 @@ namespace eenn_gui
 
         private void progressTimer_Tick(object sender, EventArgs e)
         {
-            int progress = (int)(get_progress() * 100);
+            var progress = (int)(get_progress() * 100);
             progressBar1.Value = progress;
-            if (progress == 10000) // Deploy finished
-            {
-                deployThread.Join();
-                WriteToLog(deploy.timeElapsed / 1000.0 + " seconds elapsed.");
-                // Stop getting progress
-                progressTimer.Enabled = false;
+            if (progress != 10000) return;
+            _deployThread.Join();
+            WriteToLog(_deploy.TimeElapsed / 1000.0 + " seconds elapsed.");
+            // Stop getting progress
+            progressTimer.Enabled = false;
 
-                // Slow down monitoring GPU
-                gpuTimer.Interval = 1000;
+            // Slow down monitoring GPU
+            gpuTimer.Interval = 1000;
 
-                // Enable textBoxes and buttons
-                exitButton.Enabled = true;
-                deployButton.Enabled = true;
-                inputFile.Enabled = true;
-                outputFile.Enabled = true;
+            // Enable textBoxes and buttons
+            exitButton.Enabled = true;
+            deployButton.Enabled = true;
+            inputFile.Enabled = true;
+            outputFile.Enabled = true;
 
 
-                WriteToLog("Reconstruction finished.");
-                MessageBox.Show(@"Done!");
-
-            }
+            WriteToLog("Reconstruction finished.");
+            MessageBox.Show(@"Done!");
         }
 
         private void deployButton_Click(object sender, EventArgs e)
@@ -139,52 +125,52 @@ namespace eenn_gui
                 MessageBox.Show(@"Specify a valid input file name!", @"ERROR");
                 return;
             }
-            deploy.InputFile = inputFile.Text;
-            WriteToLog("Use \"" + deploy.InputFile + "\" as input.");
+            _deploy.InputFile = inputFile.Text;
+            WriteToLog("Use \"" + _deploy.InputFile + "\" as input.");
             if (outputFile.Text == "")
             {
                 MessageBox.Show(@"Specify an output file name!", @"ERROR");
                 return;
             }
-            deploy.OutputFile = outputFile.Text;
-            WriteToLog("Use \"" + deploy.OutputFile + "\" as output.");
-            deploy.Prototxt = ".\\model\\deploy.prototxt";
-            deploy.Caffemodel = ".\\model\\EENN.caffemodel";
+            _deploy.OutputFile = outputFile.Text;
+            WriteToLog("Use \"" + _deploy.OutputFile + "\" as output.");
+            _deploy.Prototxt = ".\\model\\deploy.prototxt";
+            _deploy.Caffemodel = ".\\model\\EENN.caffemodel";
             if (processorComboBox.SelectedIndex < 0)
             {
                 MessageBox.Show(@"Select a processor!", @"ERROR");
                 return;
             }
-            deploy.UsingGpu = processorComboBox.SelectedIndex == 1;
-            if (deploy.UsingGpu)
+            _deploy.UsingGpu = processorComboBox.SelectedIndex == 1;
+            if (_deploy.UsingGpu)
             {
                 if (gpuComboBox.SelectedIndex < 0)
                 {
                     MessageBox.Show(@"Select a GPU!", @"ERROR");
                     return;
                 }
-                deploy.GpuDevice = (uint)gpuComboBox.SelectedIndex;
-                WriteToLog("Using GPU " + deploy.GpuDevice + ": " + gpuComboBox.Text);
+                _deploy.GpuDevice = (uint)gpuComboBox.SelectedIndex;
+                WriteToLog("Using GPU " + _deploy.GpuDevice + ": " + gpuComboBox.Text);
             }
             else
             {
-                deploy.GpuDevice = 0;
+                _deploy.GpuDevice = 0;
                 WriteToLog("Using CPU");
             }
 
-            deploy.CropSize = uint.Parse(cropSizeTextBox.Text);
-            if (deploy.CropSize <= 20)
+            _deploy.CropSize = uint.Parse(cropSizeTextBox.Text);
+            if (_deploy.CropSize <= 20)
             {
                 MessageBox.Show(@"Crop size should be bigger than 20", @"ERROR");
                 return;
             }
-            deploy.OutputLog = false;
+            _deploy.OutputLog = false;
 
             WriteToLog("Reconstruction started.");
 
             // Start thread
-            deployThread = new Thread(deploy.Run);
-            deployThread.Start();
+            _deployThread = new Thread(_deploy.Run);
+            _deployThread.Start();
 
             // Start getting progress
             progressTimer.Enabled = true;
@@ -210,14 +196,7 @@ namespace eenn_gui
 
         private void processorComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (processorComboBox.Text == @"GPU")
-            {
-                gpuComboBox.Enabled = true;
-            }
-            else
-            {
-                gpuComboBox.Enabled = false;
-            }
+            gpuComboBox.Enabled = processorComboBox.Text == @"GPU";
         }
 
         private void inputBrowseButton_Click(object sender, EventArgs e)
@@ -250,40 +229,40 @@ namespace eenn_gui
 
         private void gpuTimer_Tick(object sender, EventArgs e)
         {
-            if (currentGpuDevice == 32767) return;
-            uint gpu_temperature = get_gpu_temperature(currentGpuDevice);
-            uint gpu_utilization = get_gpu_utilization(currentGpuDevice);
-            uint gpu_memory = get_gpu_memory_usage(currentGpuDevice);
+            if (_currentGpuDevice == 32767) return;
+            uint gpuTemperature = get_gpu_temperature(_currentGpuDevice);
+            uint gpuUtilization = get_gpu_utilization(_currentGpuDevice);
+            uint gpuMemory = get_gpu_memory_usage(_currentGpuDevice);
 
-            utilLabel.Text = gpu_utilization + @" %";
-            memoryLabel.Text = gpu_memory + @" %";
-            temperatureLabel.Text = gpu_temperature + @" C";
-            if (gpu_temperature >= 0.5 * (gpu_shutdown_temperature - gpu_slowdown_temperature) + gpu_slowdown_temperature)
+            utilLabel.Text = gpuUtilization + @" %";
+            memoryLabel.Text = gpuMemory + @" %";
+            temperatureLabel.Text = gpuTemperature + @" C";
+            if (gpuTemperature >= 0.5 * (_gpuShutdownTemperature - _gpuSlowdownTemperature) + _gpuSlowdownTemperature)
                 temperatureLabel.ForeColor = Color.Red;
-            else if (gpu_temperature >= 0.7 * gpu_slowdown_temperature)
+            else if (gpuTemperature >= 0.7 * _gpuSlowdownTemperature)
                 temperatureLabel.ForeColor = Color.Olive;
             else
                 temperatureLabel.ForeColor = Color.Blue;
 
-            utilProgressBar.Value = (int)gpu_utilization;
-            memoryProgressBar.Value = (int)gpu_memory;
-            temperatureProgressBar.Value = (int)gpu_temperature;
+            utilProgressBar.Value = (int)gpuUtilization;
+            memoryProgressBar.Value = (int)gpuMemory;
+            temperatureProgressBar.Value = (int)gpuTemperature;
 
         }
 
         private void gpuComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            currentGpuDevice = (uint)gpuComboBox.SelectedIndex;
+            _currentGpuDevice = (uint)gpuComboBox.SelectedIndex;
             // Get GPU Temperature Threshod
-            gpu_shutdown_temperature = get_gpu_shutdown_temperature(currentGpuDevice);
-            gpu_slowdown_temperature = get_gpu_slowdown_temperature(currentGpuDevice);
-            temperatureProgressBar.Maximum = (int)gpu_shutdown_temperature;
+            _gpuShutdownTemperature = get_gpu_shutdown_temperature(_currentGpuDevice);
+            _gpuSlowdownTemperature = get_gpu_slowdown_temperature(_currentGpuDevice);
+            temperatureProgressBar.Maximum = (int)_gpuShutdownTemperature;
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            IntPtr hMenu = GetSystemMenu(this.Handle, 0);
-            EnableMenuItem(hMenu, SC_CLOSE, (MF_DISABLED + MF_GRAYED) | MF_ENABLED);
+            var hMenu = GetSystemMenu(Handle, 0);
+            EnableMenuItem(hMenu, ScClose, (MfDisabled + MfGrayed) | MfEnabled);
 
         }
 
@@ -301,7 +280,7 @@ namespace eenn_gui
             [MarshalAs(UnmanagedType.LPStr)]string model,
             [MarshalAs(UnmanagedType.LPStr)]string input,
             [MarshalAs(UnmanagedType.LPStr)]string output,
-            bool using_gpu, uint gpu_device, uint crop_size, bool output_log);
+            bool usingGpu, uint gpuDevice, uint cropSize, bool outputLog);
 
         public string Prototxt;
         public string Caffemodel;
@@ -312,21 +291,21 @@ namespace eenn_gui
         public uint CropSize;
         public bool OutputLog;
 
-        public long timeElapsed;
-        public bool completed;
+        public long TimeElapsed;
+        public bool Completed;
 
         public void Run()
         {
-            timeElapsed = 0;
-            completed = false;
-            Stopwatch st = new Stopwatch();
+            TimeElapsed = 0;
+            Completed = false;
+            var st = new Stopwatch();
             st.Start();
 
-            int hr = deploy(Prototxt, Caffemodel, InputFile, OutputFile, UsingGpu, GpuDevice, CropSize, OutputLog);
+            deploy(Prototxt, Caffemodel, InputFile, OutputFile, UsingGpu, GpuDevice, CropSize, OutputLog);
 
             st.Stop();
-            timeElapsed = st.ElapsedMilliseconds;
-            completed = true;
+            TimeElapsed = st.ElapsedMilliseconds;
+            Completed = true;
         }
     }
 }

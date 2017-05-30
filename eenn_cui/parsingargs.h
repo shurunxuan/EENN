@@ -21,9 +21,9 @@ private:
 
 	KeyFlag GetKeyFlag(std::string &key);
 
-	void RemoveKeyFlag(std::string & paras);
+	static void RemoveKeyFlag(std::string & paras);
 
-	bool GetWord(std::string & Paras, std::string & word);
+	static bool GetWord(std::string & Paras, std::string & word);
 
 	bool IsDuplicateKey(const std::string &key, const std::map<std::string, std::vector<std::string> > & result);
 
