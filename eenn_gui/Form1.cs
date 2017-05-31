@@ -234,24 +234,37 @@ namespace eenn_gui
             uint gpuUtilization = get_gpu_utilization(_currentGpuDevice);
             uint gpuMemory = get_gpu_memory_usage(_currentGpuDevice);
 
-            if (gpuTemperature > temperatureProgressBar.Maximum) return;
-            if (gpuUtilization > utilProgressBar.Maximum) return;
-            if (gpuMemory > memoryProgressBar.Maximum) return;
-
-            utilLabel.Text = gpuUtilization + @" %";
-            memoryLabel.Text = gpuMemory + @" %";
-            temperatureLabel.Text = gpuTemperature + @" C";
-            if (gpuTemperature >= 0.5 * (_gpuShutdownTemperature - _gpuSlowdownTemperature) + _gpuSlowdownTemperature)
-                temperatureLabel.ForeColor = Color.Red;
-            else if (gpuTemperature >= 0.7 * _gpuSlowdownTemperature)
-                temperatureLabel.ForeColor = Color.Olive;
+            if (gpuTemperature > temperatureProgressBar.Maximum)
+                WriteToLog("Error getting GPU temperature!");
             else
-                temperatureLabel.ForeColor = Color.Blue;
+            {
+                temperatureLabel.Text = gpuTemperature + @" C";
+                if (gpuTemperature >= 0.5 * (_gpuShutdownTemperature - _gpuSlowdownTemperature) + _gpuSlowdownTemperature)
+                    temperatureLabel.ForeColor = Color.Red;
+                else if (gpuTemperature >= 0.7 * _gpuSlowdownTemperature)
+                    temperatureLabel.ForeColor = Color.Olive;
+                else
+                    temperatureLabel.ForeColor = Color.Blue;
 
-            utilProgressBar.Value = (int)gpuUtilization;
-            memoryProgressBar.Value = (int)gpuMemory;
-            temperatureProgressBar.Value = (int)gpuTemperature;
+                temperatureProgressBar.Value = (int)gpuTemperature;
+            }
 
+            if (gpuUtilization > utilProgressBar.Maximum)
+                WriteToLog("Error getting GPU Utilization!");
+            else
+            {
+                utilLabel.Text = gpuUtilization + @" %";
+                utilProgressBar.Value = (int)gpuUtilization;
+            }
+
+            if (gpuMemory > memoryProgressBar.Maximum)
+                WriteToLog("Error getting GPU Memory Usage!");
+            else
+            {
+                memoryLabel.Text = gpuMemory + @" %";
+                memoryProgressBar.Value = (int)gpuMemory;
+            }
+            
         }
 
         private void gpuComboBox_SelectedIndexChanged(object sender, EventArgs e)

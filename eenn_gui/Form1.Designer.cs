@@ -289,9 +289,9 @@
             this.label11.AutoSize = true;
             this.label11.Location = new System.Drawing.Point(17, 334);
             this.label11.Name = "label11";
-            this.label11.Size = new System.Drawing.Size(128, 25);
+            this.label11.Size = new System.Drawing.Size(140, 25);
             this.label11.TabIndex = 18;
-            this.label11.Text = "Temprature:";
+            this.label11.Text = "Temperature:";
             this.label11.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // label9
