@@ -32,6 +32,8 @@ usage: eenn_cui -i INPUT_FILE -o OUTPUT_FILE [OPTIONS] [FLAGS]
 
 int main(int argc, char** argv)
 {
+	std::string progPath(argv[0]);
+	std::string base(progPath.begin(), progPath.begin() + progPath.rfind('\\') + 1);
 	std::vector<std::string> argList;
 	std::string argstr;
 	for (auto i = 1; i < argc; ++i)
@@ -157,8 +159,8 @@ int main(int argc, char** argv)
 
 	auto log = result.find("l") != result.end() || result.find("log") != result.end();
 
-	std::string prototxt("model\\deploy.prototxt");
-	std::string caffemodel("model\\EENN.caffemodel");
+	std::string prototxt(base + "model\\deploy.prototxt");
+	std::string caffemodel(base + "model\\EENN.caffemodel");
 
 	auto hr = deploy(prototxt.c_str(), caffemodel.c_str(), inputFile.c_str(), outputFile.c_str(), useGpu, gpuDevice, cropSize, log);
 

@@ -310,9 +310,9 @@ EENN_UTILS_API int deploy(const char* proto, const char* model, const char* inpu
 
 	auto height = img.rows * 2;										// Target height
 	auto width = img.cols * 2;										// Target width
-
+	
 																	// Resize the input image
-	cv::resize(img, img2x, cv::Size(width, height), 0, 0, CV_INTER_CUBIC);
+	cv::resize(img, img2x, cv::Size(width, height), 0, 0, CV_INTER_LINEAR);
 
 	int new_width = int(ceil(width / float(output_size)) * output_size) + difference;	// Width for fill
 	int new_height = int(ceil(height / float(output_size)) * output_size) + difference;	// Height for fill
