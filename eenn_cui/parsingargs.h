@@ -15,7 +15,7 @@ public:
 
 	bool AddArgType(const char shortName, const char * longName = nullptr, KeyFlag flag = NO_VALUE);
 
-	int Parse(const std::string & paras, std::map<std::string, std::vector<std::string> > & result, std::string &errPos);
+	int Parse(const std::string & paras, std::map<std::string, std::vector<std::string>> & result, std::string &errPos);
 
 private:
 
@@ -25,7 +25,7 @@ private:
 
 	static bool GetWord(std::string & Paras, std::string & word);
 
-	bool IsDuplicateKey(const std::string &key, const std::map<std::string, std::vector<std::string> > & result);
+	bool IsDuplicateKey(const std::string &key, const std::map<std::string, std::vector<std::string>> & result);
 
 	struct Option
 	{

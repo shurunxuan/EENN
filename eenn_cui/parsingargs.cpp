@@ -129,7 +129,7 @@ bool ParsingArgs::GetWord(std::string & Paras, std::string & word)
 	return false;
 }
 
-bool ParsingArgs::IsDuplicateKey(const std::string &key, const std::map<std::string, std::vector<std::string> > & result)
+bool ParsingArgs::IsDuplicateKey(const std::string &key, const std::map<std::string, std::vector<std::string>> & result)
 {
 	if (result.find(key) != result.end())
 	{
@@ -148,7 +148,7 @@ bool ParsingArgs::IsDuplicateKey(const std::string &key, const std::map<std::str
 	return false;
 }
 
-int ParsingArgs::Parse(const std::string & Paras, std::map<std::string, std::vector<std::string> > & result, std::string &errPos)
+int ParsingArgs::Parse(const std::string & Paras, std::map<std::string, std::vector<std::string>> & result, std::string &errPos)
 {
 	auto tmpString = Paras;
 	auto keyFlag = INVALID_KEY;

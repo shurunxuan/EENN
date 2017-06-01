@@ -151,7 +151,7 @@ EENN_UTILS_API unsigned int get_gpu_memory_usage(unsigned int index)
 	return utilization.memory;
 }
 
-void caffe_forward(boost::shared_ptr<caffe::Net<float> > & net, float *data_ptr)
+void caffe_forward(boost::shared_ptr<caffe::Net<float>> & net, float *data_ptr)
 {
 	auto input_blobs = net->input_blobs()[0];
 	switch (caffe::Caffe::mode())
@@ -170,7 +170,7 @@ void caffe_forward(boost::shared_ptr<caffe::Net<float> > & net, float *data_ptr)
 	net->Forward();
 }
 
-void caffe_forward(boost::shared_ptr<caffe::Net<float> > & net, cv::Mat& block, caffe::DataTransformer<float>& input_xformer)
+void caffe_forward(boost::shared_ptr<caffe::Net<float>> & net, cv::Mat& block, caffe::DataTransformer<float>& input_xformer)
 {
 	auto input_blobs = net->input_blobs()[0];
 	input_xformer.Transform(block, input_blobs);
@@ -264,15 +264,15 @@ EENN_UTILS_API int deploy(const char* proto, const char* model, const char* inpu
 
 	for (auto i = 0; i < 4; ++i)
 	{
-		std::getline(originalPrototxt, line);
+		getline(originalPrototxt, line);
 		outputPrototxt << line << std::endl;
 	}
 	for (auto i = 0; i < 2; ++i)
 	{
-		std::getline(originalPrototxt, line);
+		getline(originalPrototxt, line);
 		outputPrototxt << "  dim: " << input_size << std::endl;
 	}
-	while (std::getline(originalPrototxt, line))
+	while (getline(originalPrototxt, line))
 		outputPrototxt << line << std::endl;
 
 	outputPrototxt.close();
@@ -312,7 +312,7 @@ EENN_UTILS_API int deploy(const char* proto, const char* model, const char* inpu
 	auto width = img.cols * 2;										// Target width
 	
 																	// Resize the input image
-	cv::resize(img, img2x, cv::Size(width, height), 0, 0, CV_INTER_LINEAR);
+	resize(img, img2x, cv::Size(width, height), 0, 0, CV_INTER_LINEAR);
 
 	int new_width = int(ceil(width / float(output_size)) * output_size) + difference;	// Width for fill
 	int new_height = int(ceil(height / float(output_size)) * output_size) + difference;	// Height for fill
@@ -376,6 +376,6 @@ EENN_UTILS_API int deploy(const char* proto, const char* model, const char* inpu
 	auto imgReconstructContent = imgReconstruct(fit);
 	cv::Mat imgOutput;
 	imgReconstructContent.convertTo(imgOutput, CV_8UC3);
-	cv::imwrite(imgOutPath, imgOutput);
+	imwrite(imgOutPath, imgOutput);
 	return 0;
 }
