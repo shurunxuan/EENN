@@ -96,7 +96,7 @@ EENN_UTILS_API char* get_gpu_name(unsigned int index)
 	return name;
 }
 
-EENN_UTILS_API unsigned int get_gpu_slowdown_temperature(unsigned index)
+EENN_UTILS_API unsigned int get_gpu_slowdown_temperature(unsigned int index)
 {
 	nvmlDevice_t device;
 	auto result = nvmlDeviceGetHandleByIndex(index, &device);
@@ -282,8 +282,7 @@ EENN_UTILS_API int deploy(const char* proto, const char* model, const char* inpu
 	if (using_gpu)
 	{
 		caffe::Caffe::set_mode(caffe::Caffe::GPU);
-		auto device_id = 0;
-		caffe::Caffe::SetDevice(device_id);
+		caffe::Caffe::SetDevice(gpu_device);
 	}
 	else
 	{
